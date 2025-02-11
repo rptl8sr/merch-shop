@@ -1,6 +1,7 @@
 REPO_NAME := $(shell basename $(CURDIR))
 PROJECT := $(CURDIR)
 LOCAL_BIN := $(CURDIR)/bin
+MIGRATIONS_DIR := $(CURDIR)/migratins
 
 ifneq (,$(wildcard ./.env))
 ENV_FILE := .env
@@ -30,7 +31,7 @@ BN ?= dev
 .PHONY: git-checkout
 git-checkout:
 	git checkout -b $(BN)
-	
+
 # LINT
 .PHONY: golangci-lint-install
 lint-install:
@@ -39,3 +40,19 @@ lint-install:
 .PHONY: lint
 lint:
 	$(LOCAL_BIN)/golangci-lint run ./...
+
+# PROJECT
+.PHONY: blueprint
+blueprint:
+	mkdir $(LOCAL_BIN)
+	mkdir $(MIGRATIONS_DIR)
+	mkdir -p cmd/api && echo 'package main' > cmd/api/main.go
+	mkdir -p internal/config && echo 'package config' > internal/config/config.go
+	mkdir -p internal/handler && echo 'package handler' > internal/handler/handler.go
+	mkdir -p internal/model && echo 'package model' > internal/model/model.go
+	mkdir -p internal/repository && echo 'package repository' > internal/repository/repository.go
+	mkdir -p internal/middleware && echo 'package middleware' > internal/middleware/middleware.go
+	mkdir -p pkg/jwt && echo 'package jwt' > pkg/jwt/jwt.go
+	mkdir -p pkg/database && echo 'package database' > pkg/database/database.go
+
+
