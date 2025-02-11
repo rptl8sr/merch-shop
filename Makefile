@@ -1,7 +1,7 @@
 REPO_NAME := $(shell basename $(CURDIR))
 PROJECT := $(CURDIR)
 LOCAL_BIN := $(CURDIR)/bin
-MIGRATIONS_DIR := $(CURDIR)/migratins
+MIGRATIONS_DIR := $(CURDIR)/migrations
 
 ifneq (,$(wildcard ./.env))
 ENV_FILE := .env
