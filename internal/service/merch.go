@@ -13,19 +13,25 @@ func NewMerchCache(prices map[int]int) *MerchCache {
 	}
 }
 
-func (m *MerchCache) Get(key int) int {
+func (m *MerchCache) GetMerchPrice(key int) int {
 	m.RLock()
 	defer m.RUnlock()
 	return m.prices[key]
 }
 
-func (m *MerchCache) Patch(key int, value int) {
+func (m *MerchCache) AddMerchPrice(key int, value int) {
 	m.Lock()
 	defer m.Unlock()
 	m.prices[key] = value
 }
 
-func (m *MerchCache) Del(key int) {
+func (m *MerchCache) SetMerchPrice(key int, value int) {
+	m.Lock()
+	defer m.Unlock()
+	m.prices[key] = value
+}
+
+func (m *MerchCache) DelMerchItem(key int) {
 	m.Lock()
 	defer m.Unlock()
 	delete(m.prices, key)
