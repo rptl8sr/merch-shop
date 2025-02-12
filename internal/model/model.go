@@ -8,6 +8,7 @@ type Meta struct {
 }
 
 type User struct {
+	Meta
 	Username     string `json:"username"`
 	PasswordHash string `json:"password_hash"`
 	CoinsBalance int    `json:"coins_balance"`
@@ -31,48 +32,4 @@ type Purchase struct {
 	ItemID    int `json:"item_id"`
 	Quantity  int `json:"quantity"`
 	TotalCost int `json:"total_cost"`
-}
-
-type InfoResponse struct {
-	Coins       int             `json:"coins"`
-	Inventory   []InventoryItem `json:"inventory"`
-	CoinHistory CoinHistory     `json:"coinHistory"`
-}
-
-type InventoryItem struct {
-	Type     string `json:"type"`
-	Quantity int    `json:"quantity"`
-}
-
-type CoinHistory struct {
-	Received []ReceivedTransaction `json:"received"`
-	Sent     []SentTransaction     `json:"sent"`
-}
-
-type ReceivedTransaction struct {
-	FromUser User `json:"fromUser"`
-	Amount   int  `json:"amount"`
-}
-
-type SentTransaction struct {
-	ToUser User `json:"toUser"`
-	Amount int  `json:"amount"`
-}
-
-type ErrorResponse struct {
-	Errors string `json:"errors"`
-}
-
-type AuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type AuthResponse struct {
-	Token string `json:"token"`
-}
-
-type SendCountRequest struct {
-	ReceiverID int `json:"toUser"`
-	Amount     int `json:"amount"`
 }
