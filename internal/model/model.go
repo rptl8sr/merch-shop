@@ -17,6 +17,7 @@ type User struct {
 type MerchItem struct {
 	Meta
 	ItemName string `json:"name"`
+	Price    int    `json:"price"`
 }
 
 type Transaction struct {
