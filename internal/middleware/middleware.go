@@ -3,10 +3,10 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"merch-shop/internal/httputil"
 	"net/http"
 	"strings"
 
+	"merch-shop/internal/httputil"
 	"merch-shop/pkg/jwt"
 )
 
