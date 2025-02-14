@@ -4,13 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	internalErrors "merch-shop/internal/errors"
 
 	"merch-shop/internal/model"
 	"merch-shop/pkg/database"
 	"merch-shop/pkg/logger"
 )
-
-var ErrUserNotFound = errors.New("user not found")
 
 type UserRepository struct {
 	db           database.DB
@@ -56,7 +55,7 @@ func (u *UserRepository) GetOrCreateUser(ctx context.Context, username, password
 
 	if err != nil {
 		logger.Error("UserRepository.GetOrCreateUser: ", "message", "query execution error", "error", err, "username", username, "passwordHash", passwordHash)
-		return nil, ErrUserCreationFailed
+		return nil, internalErrors.ErrUserCreationFailed
 	}
 
 	return &user, nil
@@ -72,11 +71,11 @@ func (u *UserRepository) GetUserByName(ctx context.Context, username string) (*m
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("UserRepository.GetUserByName: ", "message", "user not found", "username", username)
-			return nil, ErrUserNotFound
+			return nil, internalErrors.ErrUserNotFound
 		}
 
 		logger.Error("UserRepository.GetUserByName: ", "message", "query execution error", "error", err, "username", username)
-		return nil, ErrUserGettingFailed
+		return nil, internalErrors.ErrUserGettingFailed
 	}
 
 	return &user, nil

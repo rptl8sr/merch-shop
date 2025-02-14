@@ -5,19 +5,19 @@ import (
 )
 
 type Repository struct {
-	InfoRepository
-	MerchRepository
-	PurchaseRepository
-	TransactionRepository
-	UserRepository
+	InfoRepository        *InfoRepository
+	MerchRepository       *MerchRepository
+	PurchaseRepository    *PurchaseRepository
+	TransactionRepository *TransactionRepository
+	UserRepository        *UserRepository
 }
 
 func NewRepository(db database.DB) *Repository {
 	return &Repository{
-		InfoRepository:        *NewInfoRepository(db),
-		MerchRepository:       *NewMerchRepository(db),
-		PurchaseRepository:    *NewPurchaseRepository(db),
-		TransactionRepository: *NewTransactionRepository(db),
-		UserRepository:        *NewUserRepository(db),
+		InfoRepository:        NewInfoRepository(db),
+		MerchRepository:       NewMerchRepository(db),
+		PurchaseRepository:    NewPurchaseRepository(db),
+		TransactionRepository: NewTransactionRepository(db),
+		UserRepository:        NewUserRepository(db),
 	}
 }

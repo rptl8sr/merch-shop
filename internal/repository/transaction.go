@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"merch-shop/internal/errors"
 
 	"merch-shop/pkg/database"
 	"merch-shop/pkg/logger"
@@ -26,10 +27,19 @@ func (t *TransactionRepository) SendCoins(ctx context.Context, sender *int, rece
 		select id from users 
 		where username = $2
 	),
+	sender_check as (
+		select id, coins_balance from users
+		where 
+			id = $1 and
+			id != (select id from receiver_check)
+	),
 	sender_update as (
 		update users
 		set coins_balance = coins_balance - $3
-		where id = $1 and coins_balance >= $3
+		where 
+			id = $1 and
+			coins_balance >= $3 and
+			$1 != (select id from receiver_check)
 		returning id	
 	),
 	receiver_update as (
@@ -46,6 +56,7 @@ func (t *TransactionRepository) SendCoins(ctx context.Context, sender *int, rece
 	)
 	select 
 		(select count(*) from receiver_check) as receiver_exists,
+		(select count(*) from receiver_check) as sender_valid,
 		(select count(*) from sender_update) as sender_updated,
 		(select count(*) from receiver_update) as receiver_updated,
 		(select count(*) from transaction_insert) as transaction_inserted;
@@ -53,37 +64,43 @@ func (t *TransactionRepository) SendCoins(ctx context.Context, sender *int, rece
 
 	var (
 		receiverExists      int
+		senderValid         int
 		senderUpdated       int
 		receiverUpdated     int
 		transactionInserted int
 	)
 
 	err := t.db.QueryRow(ctx, query, sender, receiver, amount).
-		Scan(&receiverExists, &senderUpdated, &receiverUpdated, &transactionInserted)
+		Scan(&receiverExists, &senderValid, &senderUpdated, &receiverUpdated, &transactionInserted)
 
 	if err != nil {
 		logger.Error("TransactionRepository.SendCoins: ", "message", "query execution error", "error", err, "sender", *sender, "receiver", receiver, "amount", amount)
-		return ErrTransactionFailed
+		return errors.ErrTransactionFailed
 	}
 
 	if receiverExists == 0 {
 		logger.Error("TransactionRepository.SendCoins: ", "message", "receiver not found", "receiver", receiver)
-		return ErrReceiverNotFound
+		return errors.ErrReceiverNotFound
+	}
+
+	if senderValid == 0 {
+		logger.Error("TransactionRepository.SendCoins: ", "message", "sender and receiver are the same", "sender", *sender, "receiver", receiver)
+		return errors.ErrReceiverSenderAreSame
 	}
 
 	if senderUpdated == 0 {
 		logger.Error("TransactionRepository.SendCoins: ", "message", "insufficient funds", "sender", *sender, "amount", amount)
-		return ErrInsufficientFunds
+		return errors.ErrInsufficientFunds
 	}
 
 	if receiverUpdated == 0 {
 		logger.Error("TransactionRepository.SendCoins: ", "message", "receiver not updated", "receiver", receiver, "sender", *sender, "amount", amount)
-		return ErrTransactionFailed
+		return errors.ErrTransactionFailed
 	}
 
 	if transactionInserted == 0 {
 		logger.Error("TransactionRepository.SendCoins: ", "message", "transaction not inserted", "receiver", receiver, "sender", *sender, "amount", amount)
-		return ErrTransactionFailed
+		return errors.ErrTransactionFailed
 	}
 
 	return nil

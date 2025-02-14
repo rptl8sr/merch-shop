@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	internalErrors "merch-shop/internal/errors"
 
 	"merch-shop/internal/api"
 	"merch-shop/pkg/database"
@@ -65,10 +66,10 @@ func (i *InfoRepository) GetInfo(ctx context.Context, userID int) (*api.InfoResp
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Error("InfoRepository.GetInfo: ", "message", "user not found", "userID", userID)
-			return nil, ErrUserNotFound
+			return nil, internalErrors.ErrUserNotFound
 		}
 		logger.Error("InfoRepository.GetInfo: ", "message", "query execution error", "error", err, "userID", userID)
-		return nil, ErrInfoGettingFailed
+		return nil, internalErrors.ErrInfoGettingFailed
 	}
 
 	return &info, nil

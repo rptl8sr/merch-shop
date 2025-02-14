@@ -2,10 +2,10 @@ package repository
 
 import (
 	"context"
-	"merch-shop/pkg/logger"
+	"merch-shop/internal/errors"
 
-	"merch-shop/internal/model"
 	"merch-shop/pkg/database"
+	"merch-shop/pkg/logger"
 )
 
 type PurchaseRepository struct {
@@ -18,8 +18,8 @@ func NewPurchaseRepository(db database.DB) *PurchaseRepository {
 	}
 }
 
-func (p *PurchaseRepository) MakePurchase(ctx context.Context, user model.User, merch model.MerchItem, quantity int) error {
-	logger.Debug("PurchaseRepository.MakePurchase: ", "message", "making purchase", "user", user, "merch", merch, "quantity", quantity)
+func (p *PurchaseRepository) MakePurchase(ctx context.Context, userID, merchID, price, quantity int) error {
+	logger.Debug("PurchaseRepository.MakePurchase: ", "message", "making purchase", "userID", userID, "merchID", merchID, "quantity", quantity)
 
 	query := `
 	with
@@ -53,27 +53,27 @@ func (p *PurchaseRepository) MakePurchase(ctx context.Context, user model.User, 
 		purchaseInserted int
 	)
 
-	err := p.db.QueryRow(ctx, query, user.ID, merch.ID, merch.Price, quantity).
+	err := p.db.QueryRow(ctx, query, userID, merchID, price, quantity).
 		Scan(&userExists, &balanceUpdated, &purchaseInserted)
 
 	if err != nil {
-		logger.Error("PurchaseRepository.MakePurchase: ", "message", "query execution error", "error", err, "user", user, "merch", merch, "quantity", quantity)
-		return ErrPurchaseFailed
+		logger.Error("PurchaseRepository.MakePurchase: ", "message", "query execution error", "error", err, "userID", userID, "merchID", merchID, "quantity", quantity)
+		return errors.ErrPurchaseFailed
 	}
 
 	if userExists == 0 {
-		logger.Error("PurchaseRepository.MakePurchase: ", "message", "user not found", "user", user)
-		return ErrUserNotFound
+		logger.Error("PurchaseRepository.MakePurchase: ", "message", "user not found", "userID", userID)
+		return errors.ErrUserNotFound
 	}
 
 	if balanceUpdated == 0 {
-		logger.Error("PurchaseRepository.MakePurchase: ", "message", "insufficient funds", "user", user, "merch", merch, "quantity", quantity)
-		return ErrInsufficientFunds
+		logger.Error("PurchaseRepository.MakePurchase: ", "message", "insufficient funds", "userID", userID, "merchID", merchID, "quantity", quantity)
+		return errors.ErrInsufficientFunds
 	}
 
 	if purchaseInserted == 0 {
-		logger.Error("PurchaseRepository.MakePurchase: ", "message", "purchase not inserted", "user", user, "merch", merch, "quantity", quantity)
-		return ErrPurchaseFailed
+		logger.Error("PurchaseRepository.MakePurchase: ", "message", "purchase not inserted", "userID", userID, "merchID", merchID, "quantity", quantity)
+		return errors.ErrPurchaseFailed
 	}
 
 	return nil
