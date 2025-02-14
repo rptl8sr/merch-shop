@@ -10,13 +10,14 @@ import (
 	"merch-shop/internal/api"
 	"merch-shop/internal/handler"
 	mdlwr "merch-shop/internal/middleware"
+	"merch-shop/internal/service"
 )
 
 const (
 	timeout = time.Second * 60
 )
 
-func New(secret string) *chi.Mux {
+func New(secret string, service *service.Services) *chi.Mux {
 	r := chi.NewRouter()
 
 	corsMiddleware := cors.Handler(cors.Options{
@@ -36,7 +37,7 @@ func New(secret string) *chi.Mux {
 		middleware.Recoverer,
 	)
 
-	h := handler.New(secret)
+	h := handler.New(secret, service)
 
 	r.Group(func(r chi.Router) {
 
