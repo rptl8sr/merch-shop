@@ -4,7 +4,6 @@ import (
 	"context"
 
 	internalErrors "merch-shop/internal/errors"
-	"merch-shop/internal/model"
 )
 
 const (
@@ -12,8 +11,7 @@ const (
 )
 
 type PurchaseService struct {
-	repo       PurchaseRepository
-	merchCache map[string]model.MerchItem
+	repo PurchaseRepository
 }
 
 type PurchaseRepository interface {
