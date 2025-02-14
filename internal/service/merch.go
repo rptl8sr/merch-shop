@@ -1,38 +1,75 @@
 package service
 
-import "sync"
+import (
+	"context"
+	"sync"
 
-type MerchCache struct {
-	prices map[int]int
+	"merch-shop/internal/model"
+	"merch-shop/internal/repository"
+	"merch-shop/pkg/logger"
+)
+
+var (
+	merchCache *MerchService
+	merchOnce  sync.Once
+)
+
+type MerchService struct {
+	repo  MerchRepository
+	items map[string]model.MerchItem
 	sync.RWMutex
 }
 
-func NewMerchCache(prices map[int]int) *MerchCache {
-	return &MerchCache{
-		prices: prices,
-	}
+type MerchRepository interface {
+	GetMerchList(ctx context.Context) ([]repository.MerchDTO, error)
 }
 
-func (m *MerchCache) GetMerchPrice(key int) int {
+func NewMerchService(repo MerchRepository) *MerchService {
+	merchOnce.Do(func() {
+		merchCache = &MerchService{
+			repo:  repo,
+			items: make(map[string]model.MerchItem),
+		}
+	})
+
+	return merchCache
+}
+
+func (m *MerchService) GetMerchList(ctx context.Context) error {
+	merchDTOs, err := m.repo.GetMerchList(ctx)
+	if err != nil {
+		return err
+	}
+
+	m.Lock()
+	defer m.Unlock()
+
+	for _, dto := range merchDTOs {
+		m.items[dto.ItemName] = model.MerchItem{
+			Meta:     model.Meta{ID: dto.ID},
+			ItemName: dto.ItemName,
+			Price:    dto.Price,
+		}
+	}
+
+	if len(m.items) == 0 {
+		logger.Warn("MerchService.GetMerchList: ", "message", "no merch items found")
+	}
+
+	return nil
+}
+
+func (m *MerchService) GetMerchPrice(key string) int {
 	m.RLock()
 	defer m.RUnlock()
-	return m.prices[key]
+
+	return m.items[key].Price
 }
 
-func (m *MerchCache) AddMerchPrice(key int, value int) {
-	m.Lock()
-	defer m.Unlock()
-	m.prices[key] = value
-}
+func (m *MerchService) GetMerchItem(key string) (model.MerchItem, bool) {
+	m.RLock()
+	defer m.RUnlock()
 
-func (m *MerchCache) SetMerchPrice(key int, value int) {
-	m.Lock()
-	defer m.Unlock()
-	m.prices[key] = value
-}
-
-func (m *MerchCache) DelMerchItem(key int) {
-	m.Lock()
-	defer m.Unlock()
-	delete(m.prices, key)
+	item, ok := m.items[key]
+	return item, ok
 }
