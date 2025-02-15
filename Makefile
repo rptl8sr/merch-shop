@@ -14,6 +14,8 @@ include $(ENV_FILE)
 export
 endif
 
+DSN := "postgres://${PG_USER}:${PG_PASSWORD}@${PG_HOST}:${PG_PORT}/${PG_DATABASE}?sslmode=${PG_SSL_MODE}"
+
 # GIT
 .PHONY: git-init
 git-init:
@@ -56,3 +58,52 @@ blueprint:
 	mkdir -p pkg/database && echo 'package database' > pkg/database/database.go
 
 
+# GOOSE
+.PHONY: goose-get
+goose-get:
+	GOBIN=$(LOCAL_BIN) go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
+
+.PHONY: goose-make-migrations
+goose-make-migrations:
+ifndef MN
+	$(error MN is undefined)
+endif
+	$(LOCAL_BIN)/goose -dir=$(MIGRATIONS_DIR) create '$(MN)' sql
+
+.PHONY: goose-migrate-status
+goose-migrate-status:
+	$(LOCAL_BIN)/goose -dir $(MIGRATIONS_DIR) postgres $(DSN) status -v
+
+.PHONY: goose-migrate-up
+goose-migrate-up:
+	$(LOCAL_BIN)/goose -dir $(MIGRATIONS_DIR) postgres $(DSN) up -v
+
+.PHONY: goose-migrate-down
+goose-migrate-down:
+	$(LOCAL_BIN)/goose -dir $(MIGRATIONS_DIR) postgres $(DSN) down -v
+
+# OAPI CODEGEN
+.PHONY: oapi-codegen-install
+oapi-codegen-install:
+	GOBIN=$(LOCAL_BIN) go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+
+.PHONY: oapi-codegen-generate
+oapi-codegen-generate:
+	$(LOCAL_BIN)/oapi-codegen -generate types,chi-server,spec -package api ./api/schema.yaml > ./internal/api/api.gen.go
+
+# DOCKER
+.PHONY: docker-run-test
+docker-run-test:
+	docker-compose -f docker-compose.base.yaml -f docker-compose.test.yaml up --build -d
+
+.PHONY: docker-down-test
+docker-down-test:
+	docker-compose -f docker-compose.base.yaml -f docker-compose.test.yaml down
+
+.PHONY: docker-run-prod
+docker-run-prod:
+	docker-compose -f docker-compose.base.yaml -f docker-compose.prod.yaml up --build -d
+
+.PHONY: docker-down-prod
+docker-down-prod:
+	docker-compose -f docker-compose.base.yaml -f docker-compose.prod.yaml down
