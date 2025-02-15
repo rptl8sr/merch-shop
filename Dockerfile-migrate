@@ -1,0 +1,15 @@
+# Build stage
+FROM golang:1.23.2-alpine AS builder
+WORKDIR /goose
+RUN apk add --update --no-cache git make gcc musl-dev ca-certificates
+RUN go install github.com/pressly/goose/v3/cmd/goose@v3.21.1
+# Final stage
+FROM alpine:3.14
+WORKDIR /
+RUN apk add --no-cache bash postgresql-client
+COPY --from=builder /go/bin/goose /goose
+COPY ./migrations ./migrations
+COPY ./scripts/migrate.sh ./migrate.sh
+RUN chmod +x ./migrate.sh ./goose
+ENTRYPOINT ["sh", "-c", "./migrate.sh"]
+
