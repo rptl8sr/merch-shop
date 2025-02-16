@@ -8,6 +8,10 @@ import (
 )
 
 func hashPassword(password string) (string, error) {
+	if password == "" {
+		return "", internalErrors.ErrEmptyPassword
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		logger.Error("Service.hashPassword: ", "message", "error hashing password", "error", err)

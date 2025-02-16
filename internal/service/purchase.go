@@ -11,19 +11,23 @@ const (
 )
 
 type PurchaseService struct {
-	repo PurchaseRepository
+	repo         PurchaseRepository
+	merchService MerchServicer
 }
 
 type PurchaseRepository interface {
 	MakePurchase(ctx context.Context, userID, merchID, price, quantity int) error
 }
 
-func NewPurchaseService(repo PurchaseRepository) *PurchaseService {
-	return &PurchaseService{repo: repo}
+func NewPurchaseService(repo PurchaseRepository, merchService MerchServicer) *PurchaseService {
+	return &PurchaseService{
+		repo:         repo,
+		merchService: merchService,
+	}
 }
 
 func (s *PurchaseService) BuyItem(ctx context.Context, userID uint, merchName string, quantity *int) error {
-	merchItem, ok := merchCache.GetMerchItem(merchName)
+	merchItem, ok := s.merchService.GetMerchItem(merchName)
 	if !ok {
 		return internalErrors.ErrNoMerchItemFound
 	}

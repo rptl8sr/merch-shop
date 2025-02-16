@@ -13,10 +13,12 @@ type Services struct {
 }
 
 func NewServices(repo repository.Repository) *Services {
+	merchService := NewMerchService(repo.MerchRepository)
+
 	return &Services{
 		InfoService:        NewInfoService(repo.InfoRepository),
-		MerchService:       NewMerchService(repo.MerchRepository),
-		PurchaseService:    NewPurchaseService(repo.PurchaseRepository),
+		MerchService:       merchService,
+		PurchaseService:    NewPurchaseService(repo.PurchaseRepository, merchService),
 		TransactionService: NewTransactionService(repo.TransactionRepository),
 		UserService:        NewUserService(repo.UserRepository),
 	}

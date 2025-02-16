@@ -14,6 +14,12 @@ var (
 	merchOnce  sync.Once
 )
 
+type MerchServicer interface {
+	GetMerchList(ctx context.Context) error
+	GetMerchPrice(key string) int
+	GetMerchItem(key string) (model.MerchItem, bool)
+}
+
 type MerchService struct {
 	repo  MerchRepository
 	items map[string]model.MerchItem
@@ -45,15 +51,17 @@ func (m *MerchService) GetMerchList(ctx context.Context) error {
 	defer m.Unlock()
 
 	for _, dto := range merchDTOs {
-		m.items[dto.ItemName] = model.MerchItem{
-			Meta:     model.Meta{ID: dto.ID},
-			ItemName: dto.ItemName,
-			Price:    dto.Price,
+		if dto.Price > 0 && dto.ItemName != "" {
+			m.items[dto.ItemName] = model.MerchItem{
+				Meta:     model.Meta{ID: dto.ID},
+				ItemName: dto.ItemName,
+				Price:    dto.Price,
+			}
 		}
 	}
 
 	if len(m.items) == 0 {
-		logger.Warn("MerchService.GetMerchList: ", "message", "no merch items found")
+		logger.Warn("MerchService.GetMerchList: no merch items found")
 	}
 
 	return nil
