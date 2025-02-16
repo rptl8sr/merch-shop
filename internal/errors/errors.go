@@ -18,4 +18,5 @@ var (
 	ErrMerchItemsGettingFailed = errors.New("merch items getting failed")
 	ErrMerchItemScan           = errors.New("error scanning merch item")
 	ErrReceiverSenderAreSame   = errors.New("sender and receiver are the same")
+	ErrEmptyPassword           = errors.New("password cannot be empty")
 )
