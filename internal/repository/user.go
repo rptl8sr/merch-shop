@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	internalErrors "merch-shop/internal/errors"
 
+	internalErrors "merch-shop/internal/errors"
 	"merch-shop/internal/model"
 	"merch-shop/pkg/database"
 	"merch-shop/pkg/logger"
@@ -65,7 +65,7 @@ func (u *UserRepository) GetUserByName(ctx context.Context, username string) (*m
 	logger.Debug("UserRepository.GetUserByName: ", "message", "retrieving user by name", "username", username)
 
 	var user model.User
-	err := u.db.QueryRow(ctx, "select id, username, password_hash, coins_balanc from users where username = $1", username).
+	err := u.db.QueryRow(ctx, "select id, username, password_hash, coins_balance from users where username = $1", username).
 		Scan(&user.ID, &user.Username, &user.PasswordHash, &user.CoinsBalance)
 
 	if err != nil {

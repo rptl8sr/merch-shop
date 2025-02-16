@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	internalErrors "merch-shop/internal/errors"
 
 	"merch-shop/internal/api"
+	internalErrors "merch-shop/internal/errors"
 	"merch-shop/pkg/database"
 	"merch-shop/pkg/logger"
 )
