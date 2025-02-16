@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: db-merch-shop
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-password}
+      POSTGRES_DB: ${PG_DATABASE:-shop}
+    ports:
+      - ${PG_PORT:-5432}:5432
+    volumes: []
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile-migrate
+    container_name: db-migrate-merch-shop
+    depends_on:
+      - db
+    env_file: .env
+    environment:
+      PG_HOST: ${PG_HOST:-db}
+      PG_PORT: ${PG_PORT:-5432}
+      PG_USER: ${PG_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-password}
+      PG_DATABASE: ${PG_DATABASE:-shop}
+      PG_SSL_MODE: ${PG_SSL_MODE:-disable}
+    entrypoint: ["sh", "-c", "./migrate.sh"]
